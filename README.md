@@ -16,7 +16,7 @@ These are project write-ups. Company identifiers, private links, operational dat
 | [Emergency case handover](#emergency-case-handover) | Live | Reassign open work when an agent becomes unavailable |
 | [Early outage signal detection](#early-outage-signal-detection) | Live | Flag possible incident patterns in support discussions |
 | [Knowledge base assistant](#knowledge-base-assistant) | Pilot | Answer operational questions with cited sources |
-| [Shift swap validation](#shift-swap-validation) | In progress | Check requests before manager review |
+| [Shift swap validation](#shift-swap-validation) | Pilot | Check requests before manager review |
 | [Conversation workflow shortcuts](#conversation-workflow-shortcuts) | Proposed | Make routine actions easier to access |
 | [Connected bug escalation](#connected-bug-escalation) | Proposed | Keep support cases and engineering discussions connected |
 | [Shared case notes](#shared-case-notes) | Idea | Make relevant context available across conversations and teams |
