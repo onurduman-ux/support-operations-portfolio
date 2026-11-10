@@ -15,9 +15,10 @@ These are project write-ups. Company identifiers, private links, operational dat
 | [Outage coordination](#outage-coordination) | Live | Standardize incident notifications and resolution updates |
 | [Emergency case handover](#emergency-case-handover) | Live | Reassign open work when an agent becomes unavailable |
 | [Early outage signal detection](#early-outage-signal-detection) | Live | Flag possible incident patterns in support discussions |
-| [AI support experiment system](#ai-support-experiment-system) | Built; initial pilot | Connect workflow variants to conversation-level outcome analysis |
-| [Knowledge base assistant](#knowledge-base-assistant) | Pilot | Answer operational questions with cited sources |
-| [Shift swap validation](#shift-swap-validation) | In progress | Check requests before manager review |
+| [AI support experiment system](#ai-support-experiment-system) | In use | Run controlled workflow tests and connect variants to decision-ready outcomes |
+| [Knowledge base assistant](#knowledge-base-assistant) | Internal pilot | Answer operational questions with cited sources and case context |
+| [Product team finder](#product-team-finder) | Pilot | Route support questions to the responsible product team using cited evidence |
+| [Shift swap validation](#shift-swap-validation) | Working pilot | Validate and apply shift swaps with manager review |
 | [Conversation workflow shortcuts](#conversation-workflow-shortcuts) | Proposed | Make routine actions easier to access |
 | [Connected bug escalation](#connected-bug-escalation) | Proposed | Keep support cases and engineering discussions connected |
 | [Shared case notes](#shared-case-notes) | Idea | Make relevant context available across conversations and teams |
@@ -142,72 +143,112 @@ Tools: Slack API, Google Apps Script, Google Sheets, OpenAI API, Intercom API.
 
 ### AI support experiment system
 
-I wanted a dependable way to evaluate a change to an AI-assisted support flow. Collecting missing context before a human handoff could help an agent resolve a case, but it also asks the customer to do more. The experiment needed to account for both sides of that trade-off.
+I wanted a dependable way to evaluate changes to AI-assisted support flows. A workflow change can improve one operational measure while increasing customer effort, reopens, or other unwanted outcomes. The system keeps the assignment, outcome analysis, data-quality checks, and final decision in one experiment record.
 
-| Before | After in the pilot |
+| Before | After |
 | --- | --- |
-| Aggregate reports showed overall performance, but did not provide the conversation-level comparison needed to isolate a workflow change. Reporting also included spreadsheet-based steps. | Each conversation's assigned variant could be connected to its later outcomes. A dashboard brought allocation and outcome comparisons together using shared metric definitions. |
+| Aggregate reports showed overall performance, but did not provide the conversation-level comparison needed to isolate a workflow change. Reporting also included spreadsheet-based steps. | Each eligible conversation or user receives a stable variant. The assignment is connected to later outcomes, and a shared experiment structure records preparation, live monitoring, analysis, and the rollout decision. |
 
 #### How I built it
 
-I configured control and treatment paths in Intercom Fin. The control kept the existing experience; the treatment collected missing context before handoff. A repeatable assignment rule used the experiment and conversation identifiers to keep a conversation's group consistent within the experiment.
+I created a reusable experiment lifecycle with four stages: preparation, run, analysis, and decision. Preparation records the hypothesis, eligible population, assignment unit, primary measure, customer guardrails, observation window, and the rule for scaling or stopping the change.
 
-I carried those assignments into SQL analysis over replicated conversation data in Snowflake. A Streamlit dashboard showed group allocation and compared outcomes, with customer segments reviewed separately.
+Control and treatment paths are configured in the support workflow. A deterministic assignment rule uses the experiment identifier with a conversation or user identifier, depending on the behavior being tested. The original assignment is saved before routing and reused if the workflow is entered again. Invalid assignments follow the existing safe path and remain outside the comparison.
 
-My work covered workflow design, assignment logic, metric calculations, and the dashboard. I used existing data infrastructure and requested statistical review of the allocation, definitions, and interpretation.
+Assignments are joined to replicated conversation outcomes in Snowflake. Streamlit readouts show allocation, sample coverage, metric definitions, arm results, effect differences, confidence intervals, statistical tests, and data-quality checks. Where an existing experimentation platform is a better fit, I use it for the main result and keep Snowflake for supporting diagnostics.
+
+My work covers experiment design, workflow implementation, assignment logic, quality assurance, SQL analysis, dashboard development, and the decision record. Statistical review is included before results are used for rollout decisions.
 
 Tools: Intercom Fin, Snowflake, SQL, Streamlit.
 
+#### Experiment portfolio
+
+Status as of November 2026:
+
+| Experiment | Status | What it tests |
+| --- | --- | --- |
+| Account-data connectors for AI answers | Run in progress | Whether giving the AI assistant read-only account context improves answers to subscription, lesson, and payment questions without increasing customer effort |
+| Clarifying question before escalation | Analysis pending | Whether asking for the issue once before routing a tutor to a person increases AI resolution and reduces unnecessary handoffs |
+| Missing context before human handoff | Completed; not scaled | Whether collecting lesson counterpart details before handoff reduces agent work without adding too much customer friction |
+| Waiting-period timing | Analysis pending | Whether shortening the final waiting period improves service-level performance without increasing reopens, repeat contacts, or customer effort |
+| Customer-happiness survey timing | In preparation | Whether asking for feedback earlier increases response coverage without changing customer or operational outcomes |
+| Earlier closure for insufficient-information cases | Planned | Whether a shorter, local-time-aware final grace period reduces resolution time while protecting reopen and satisfaction measures |
+
+The experiments use different assignment units when the behavior requires it. Conversation-level tests keep each conversation in one arm. User-level tests keep the same person in one arm across later conversations. Each design records safe fallback behavior so an assignment or connector failure does not expose the customer to an incomplete treatment.
+
 #### Measurement and validation
 
-The comparison used median resolution time, mean adjusted handling time, mean customer message count, reopen rate, and a combined customer effort measure. Customer happiness was also included in the review so operational speed could be assessed alongside the customer experience.
+Each experiment has one primary outcome and a small set of customer or operational guardrails. The exact measures depend on the workflow, but they can include resolution, handling time, customer inputs, reopens, repeat contacts, customer effort, and customer happiness.
 
-I checked that both variants received traffic and reviewed the allocation before interpreting outcomes. Conversations were the comparison unit. The initial dashboard did not include confidence intervals or significance tests, and further checks were needed for incomplete outcomes, missing effort values, and duplicate warehouse records. The pilot supported exploratory review; it did not establish a causal improvement.
+The official comparison keeps each valid unit in its original assigned group. Treatment delivery, workflow incidents, missing outcomes, source freshness, and duplicate records are checked separately so they do not silently change the comparison. Diagnostic views can explain a result, but they do not replace the original control-versus-treatment analysis.
 
-#### Next steps
+One completed experiment tested whether collecting additional context before human handoff improved support outcomes. It did not demonstrate the intended improvement and introduced customer-effort and reopen concerns under the existing workflow behavior. The treatment was stopped instead of being scaled. The same lifecycle is now used for several experiments at different stages.
 
-- Define a primary outcome, customer experience guardrails, and an observation window before each test starts.
-- Automate checks for missing assignments, duplicate records, and incomplete outcome data.
-- Evaluate user-level assignment for changes that could affect repeated contacts.
-- Standardize experiment names, versions, and configuration, and preserve assignments and results when a test ends.
+#### Current direction
+
+- Automate more checks for assignment balance, missing outcomes, source freshness, and treatment delivery.
+- Reuse the same lifecycle and reporting structure while keeping each experiment's population and measures explicit.
+- Preserve workflow versions, assignments, incidents, results, and decisions after a test ends.
 
 ### Knowledge base assistant
 
 The idea was to let support staff ask operational questions in plain language and receive an answer they could check against the original articles.
 
-| Before | After in the pilot |
+| Before | After in the internal pilot |
 | --- | --- |
-| Agents searched articles manually or interrupted a colleague for guidance. Reviewing a case and finding the relevant documentation were separate tasks. | A Slack assistant returns guidance with cited sources, supports follow-up questions, and can include case context in configured channels. |
+| Agents searched articles manually or interrupted a colleague for guidance. Reviewing a case and finding the relevant documentation were separate tasks. | A Slack assistant returns step-by-step guidance with cited sources, supports follow-up questions, and can include referenced conversation or ticket context in configured channels. |
 
 #### How I built it
 
-An Apps Script webhook receives questions from configured Slack channels. The OpenAI API expands the search query, and the system retrieves content from an indexed knowledge base and public help articles. The answer uses that content together with the thread history and, where applicable, a referenced Intercom conversation or ticket.
+An Apps Script webhook receives questions from configured Slack channels. The OpenAI API expands the search query, and the system retrieves content from indexed internal articles, selected Confluence spaces, and public help articles. The answer uses that content with the Slack thread history and, where applicable, a referenced Intercom conversation or ticket.
 
-The article index uses text chunks and change detection. Retrieval rules prioritize authoritative articles, while alias expansion helps match shorthand to the terms used in documentation. A separate reference lookup supports questions about conversation tags.
+The article index uses text chunks, scheduled refreshes, and change detection. Retrieval rules prioritize the current authoritative source when the same procedure appears in more than one system. Alias expansion helps match internal shorthand to the terms used in documentation. A separate reference lookup supports questions about conversation tags.
 
 The response appears in the Slack thread with source links. Google Sheets records interactions, retrieval diagnostics, and feedback from reactions. Duplicate-message checks prevent repeated processing, and failed case lookups can fall back to a documentation-only answer.
 
-Tools: Google Apps Script, Slack API, OpenAI API, Intercom API, Google Sheets.
+Tools: Google Apps Script, Slack API, OpenAI API, Intercom API, Confluence API, Google Sheets.
 
-The Slack version is a working pilot. Wider rollout and an assistant embedded in the support inbox remain planned. The assistant provides guidance; it does not change cases or send customer responses.
+The Slack version is in internal use with support staff, team leads, and onboarding colleagues. A wider rollout needs a more suitable hosted environment than the current pilot. The assistant provides guidance; it does not change cases or send customer responses.
+
+### Product team finder
+
+The idea was to help senior support agents identify which product team owns an issue without relying on memory or broad access to internal systems.
+
+| Before | After in the pilot |
+| --- | --- |
+| Finding the right owner meant searching several pages or asking colleagues. Similar issues could be routed differently depending on who handled them. | A Slack assistant checks the support ownership map and related evidence, then suggests the responsible product team and its public internal channel. It gives a confidence level and asks for clarification when the evidence is incomplete. |
+
+#### How I built it
+
+I built a dedicated hosted Slack agent with the Cursor Agent SDK and a scoped, read-only Atlassian connection. Its instructions require it to check the ownership map first, follow the affected product flow, cite the source used for the recommendation, and avoid guessing when the available evidence is insufficient.
+
+Follow-up questions stay in the same Slack thread. The assistant can read the approved ownership and documentation sources, but it cannot edit Atlassian content, submit reports, or route incidents automatically.
+
+Tools: Cursor Agent SDK, Slack, Jira, Confluence.
+
+This is a working pilot. Broader rollout and usage measurement are still in progress.
 
 ## In development
 
 ### Shift swap validation
 
-The current focus is a standalone request and validation flow. An interface demo exists, but the feature is still in progress. The broader workforce portal remains in planning.
+The current version is a working pilot for workforce managers. I separated it from a broader workforce portal so the shift-swap process could be tested without waiting for the infrastructure needed for a larger product.
 
-#### Before
+| Before | After in the pilot |
+| --- | --- |
+| Managers checked requests manually against scheduling rules, updated schedules themselves, and followed up with both agents. | Requests enter a shared queue with rule checks and a schedule preview. A manager makes the final decision, and an accepted swap is applied through the scheduling API with a saved snapshot for recovery if part of the update fails. |
 
-Managers checked swap requests manually against scheduling rules. Availability information and announcements were spread across separate forms, sheets, and messages.
+#### How I built it
 
-#### Idea
+A Slack workflow records the request in Google Sheets. A domain-restricted Apps Script web app gives workforce managers a queue, history, search, rule results, and schedule previews.
 
-Check a swap request before it reaches a manager, collect the other participant's acceptance, and keep the final decision with the manager. Validation would cover eligibility, date ranges, and scheduling constraints.
+The tool maps each agent to their email, operational level, Slack identity, and scheduling profile. It checks same-level eligibility, consecutive working days, minimum rest, overnight leftovers, monthly freeze rules, and ramp-up status. Planned leave that fully covers customer time is excluded from working-day and rest calculations. Managers can still accept a request when a rule produces a warning; the tool shows the warning instead of making the decision for them.
 
-#### Intended outcome
+For an accepted request, the tool saves the existing schedules, applies the swap through the Assembled API, and restores the snapshot if the update fails. Both agents receive the decision by Slack direct message. Blocked requests remain visible in the manager queue instead of disappearing from the tool.
 
-Managers would review requests that have passed the initial checks and have been accepted by both participants. Applicants would receive status updates, and each request would have a shared history. A wider portal could later bring availability and announcements into the same place.
+The remaining gap is reliable start-date data for the three-month ramp-up check. A bulk update and a new-hire process are needed so a missing start date cannot be treated as a passed check. The broader agent self-service portal remains outside the current pilot.
+
+Tools: Slack Workflow Builder, Google Sheets, Google Apps Script, HTML Service, Assembled API, Slack API.
 
 ## Proposed projects and ideas
 
