@@ -165,14 +165,14 @@ Tools: Intercom Fin, Snowflake, SQL, Streamlit.
 
 Status as of November 2026:
 
-| Experiment | Status | What it tests |
+| Experiment area | Status | Focus |
 | --- | --- | --- |
-| Account-data connectors for AI answers | Run in progress | Whether giving the AI assistant read-only account context improves answers to subscription, lesson, and payment questions without increasing customer effort |
-| Clarifying question before escalation | Analysis pending | Whether asking for the issue once before routing a tutor to a person increases AI resolution and reduces unnecessary handoffs |
-| Missing context before human handoff | Completed; not scaled | Whether collecting lesson counterpart details before handoff reduces agent work without adding too much customer friction |
-| Waiting-period timing | Analysis pending | Whether shortening the final waiting period improves service-level performance without increasing reopens, repeat contacts, or customer effort |
-| Customer-happiness survey timing | In preparation | Whether asking for feedback earlier increases response coverage without changing customer or operational outcomes |
-| Earlier closure for insufficient-information cases | Planned | Whether a shorter, local-time-aware final grace period reduces resolution time while protecting reopen and satisfaction measures |
+| AI response context | Active | Improve answer relevance |
+| Escalation flow | Review pending | Reduce avoidable handoffs |
+| Handoff quality | Completed; not scaled | Improve information available to agents |
+| Workflow timing | Review pending | Reduce avoidable delays |
+| Feedback collection | In preparation | Improve response coverage |
+| Conversation closure | Planned | Reduce resolution time |
 
 The experiments use different assignment units when the behavior requires it. Conversation-level tests keep each conversation in one arm. User-level tests keep the same person in one arm across later conversations. Each design records safe fallback behavior so an assignment or connector failure does not expose the customer to an incomplete treatment.
 
@@ -182,7 +182,7 @@ Each experiment has one primary outcome and a small set of customer or operation
 
 The official comparison keeps each valid unit in its original assigned group. Treatment delivery, workflow incidents, missing outcomes, source freshness, and duplicate records are checked separately so they do not silently change the comparison. Diagnostic views can explain a result, but they do not replace the original control-versus-treatment analysis.
 
-One completed experiment tested whether collecting additional context before human handoff improved support outcomes. It did not demonstrate the intended improvement and introduced customer-effort and reopen concerns under the existing workflow behavior. The treatment was stopped instead of being scaled. The same lifecycle is now used for several experiments at different stages.
+One completed workflow experiment did not demonstrate the intended improvement and raised customer-experience concerns. The treatment was stopped instead of being scaled. The same lifecycle is now used for several experiments at different stages.
 
 #### Current direction
 
