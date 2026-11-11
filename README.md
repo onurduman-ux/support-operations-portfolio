@@ -167,10 +167,10 @@ Status as of November 2026:
 
 | Experiment area | Status | Focus |
 | --- | --- | --- |
-| AI response context | Active | Improve answer relevance |
-| Escalation flow | Review pending | Reduce avoidable handoffs |
+| AI response context | Live | Improve answer relevance |
+| Escalation flow | Live | Reduce avoidable handoffs |
 | Handoff quality | Completed; not scaled | Improve information available to agents |
-| Workflow timing | Review pending | Reduce avoidable delays |
+| Workflow timing | Live | Reduce avoidable delays |
 | Feedback collection | In preparation | Improve response coverage |
 | Conversation closure | Planned | Reduce resolution time |
 
